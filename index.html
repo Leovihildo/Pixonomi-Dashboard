@@ -1,0 +1,651 @@
+<!DOCTYPE html>
+<html lang="en">
+<head>
+    <meta charset="UTF-8">
+    <meta name="viewport" content="width=device-width, initial-scale=1.0">
+    <title>Client Dashboard</title>
+
+    <!-- Bootstrap Stylesheet-->
+    <link href="https://cdn.jsdelivr.net/npm/bootstrap@5.3.2/dist/css/bootstrap.min.css" rel="stylesheet" integrity="sha384-T3c6CoIi6uLrA9TneNEoa7RxnatzjcDSCmG1MXxSR1GAsXEV/Dwwykc2MPK8M2HN" crossorigin="anonymous">
+    <!-- Bootstrap Script-->
+    <script src="https://cdn.jsdelivr.net/npm/bootstrap@5.3.2/dist/js/bootstrap.bundle.min.js" integrity="sha384-C6RzsynM9kWDrMNeT87bh95OGNyZPhcTNXj1NW7RuBCsyN/o0jlpcV8Qyq46cDfL" crossorigin="anonymous"></script>
+    
+    <!-- Leaflet JS -->
+    <link rel="stylesheet" href="https://unpkg.com/leaflet@1.9.4/dist/leaflet.css" integrity="sha256-p4NxAoJBhIIN+hmNHrzRCf9tD/miZyoHS5obTRR9BMY=" crossorigin="" />
+    <script src="https://unpkg.com/leaflet@1.9.4/dist/leaflet.js" integrity="sha256-20nQCchB9co0qIjJZRGuk2/Z9VM+kNiyxNV1lvTlZBo=" crossorigin=""></script>
+    
+    <script src="https://cdnjs.cloudflare.com/ajax/libs/xlsx/0.18.5/xlsx.full.min.js"></script>
+    <!-- StyleSheet -->
+    <style>
+        *{
+            padding: 0;
+            margin: 0;
+            box-sizing: border-box;
+        }
+        body{
+            font-family: Verdana, Geneva, Tahoma, sans-serif;
+        }
+      .hl_page-preview--content .col-4iV3w8kx3S, .hl_page-preview--content .row-47-KGKYL0W, .hl_page-preview--content .section-FAm8qxzxfF{
+      	padding: 0;
+      }
+      #section-FAm8qxzxfF>.inner{
+      	margin: 0 !important;
+      }
+        .dashboard-container{
+            height: 100vh;
+            width: 100vw;
+            overflow-x: hidden;
+            /* background-color: aqua; */
+            display: grid;
+            grid-template-columns: 40% 40% 20%;
+            grid-auto-rows: minmax(auto, auto);
+            column-gap: 15px;
+            row-gap: 15px;
+        }
+        .dashboard-container div{
+          /* padding: 10px; */
+            /* border: 1px solid #000; */
+            /* width: 200px; */
+            margin-bottom: 10px;
+        }
+        .grid-item-1, .grid-item-2{
+            text-align: center;
+            height: fit-content;
+          font-weight: bold;
+          padding-top: 5px;
+            /* margin-bottom: -100px !important; */
+        }
+        /* .grid-item-4, .grid-item-5{
+            grid-row: span 4;
+        } */
+        .grid-item-3{
+            grid-row: span 5;
+            height: 100svh;
+            display: flex;
+            flex-direction: column;
+            border: 2px solid #7a7a7a;
+            margin-left: -15px;
+        }
+        .grid-item-3 .grid-message{
+          padding-left: 10px;
+          padding-top: 5px;
+        }
+        .grid-item-3 .grid-speedometer{
+          height: 120%;
+          border: 2px solid #000;
+        }
+        .grid-item-3 .grid-taskbar{
+          height: 80%;
+          border: 2px solid #000;
+        }
+        .grid-item-4, .grid-item-5{
+            margin-top: -23px;
+        }
+        .grid-item-5{
+            height: fit-content;
+        }
+        .grid-item-5>.grid-header{
+            background-color: burlywood !important;
+            color: #000;
+          padding-top: 5px;
+            padding-left: 20px;
+            width: 100%;
+            height: 30px;
+        }
+        .grid-item-5-box-container, .grid-item-5-chart-box-container{
+           display: flex;
+           margin-top: -10px;
+        }
+        .grid-item-5-box-container>div, .grid-item-5-chart-box-container>div{
+            height: auto;
+            flex-grow: 1;
+            background-color: rgb(20, 20, 20) !important;
+            text-align: center;
+            border: 4px solid #000;
+            color: #fff;
+        }
+        .grid-item-5-chart-box-container>div{
+            width: 33.3%;
+        }
+        .grid-item-5-box-container>div{
+            width: fit-content;
+        }
+        .grid-item-5-chart-box-container>div{
+            padding-bottom: 10px;
+            margin-top: -13px;
+        }
+        .grid-item-5-box-container>div p:nth-child(1){
+            font-size: .7rem;
+            margin-top: 12px;
+        }
+        .grid-item-5-box-container>div p:nth-child(2){
+            font-size: 1rem;
+            color: burlywood;
+            font-weight: bold;
+            margin-top: -18px;
+        }
+        #myChart3, #myChart4, #myChart5{
+          margin-bottom: 10px;
+        }
+        .grid-item-6, .grid-item-7{
+            background-color: rgb(20, 20, 20) !important;
+            margin-top: -35px;
+        }
+        .grid-item-7{
+          padding-right: 20px;
+        }
+        /* .grid-item-4{
+
+        } */
+        #map{
+            width: 100%;
+            height: 96%;
+        }
+      .popup{
+          font-size: 1.2rem;
+          font-weight: 700;
+        }
+        .grid-item-8{
+          width: 100vw;
+        }
+
+        /* FOR SMALLER DEVICES */
+        @media (width <= 540px) {
+          .dashboard-container{
+            display: block;
+        }
+        .grid-item-3 {
+          height: 100px;
+          z-index: -9;
+          margin-left: 0;
+          display: block;
+          grid-row: 0;
+        }
+        .grid-item-3 .grid-speedometer, .grid-item-3 .grid-taskbar{
+          display: none;
+        }
+        .grid-item-4, .grid-item-5{
+            margin-top: 0;
+            margin-bottom: 20px;
+        }
+        }
+    </style>
+</head>
+<body>
+    <div class="dashboard-container">
+        <div class="grid-item-1">
+            <p>Credits Remaining<br>2544</p>
+        </div>
+        <div class="grid-item-2">
+            <p>Total Leads<br>983</p>
+        </div>
+        <div class="grid-item-3">
+          <div class="grid-message"><h3>Hello, User</h3><p>How are you doing?</p></div>
+          <div class="grid-speedometer"></div>
+          <div class="grid-taskbar"></div>
+        </div>
+        <div class="grid-item-4">
+          <div class="map" id="map"></div>
+        </div>
+        <div class="grid-item-5">
+            <div class="grid-header">
+                <p>Demographic Dashboard</p>
+            </div>
+            <div class="grid-item-5-box-container">
+                <div class="grid-item-5-box-1">
+                    <p>Header title</p>
+                    <p>2.75M</p>
+                </div>
+                <div class="grid-item-5-box-2">
+                    <p>Header title</p>
+                    <p>1.37M</p>
+                </div>
+                <div class="grid-item-5-box-3">
+                    <p>Header title</p>
+                    <p>706.30K</p>
+                </div>
+                <div class="grid-item-5-box-4">
+                    <p>Header title</p>
+                    <p>0.20K</p>
+                </div>
+                <div class="grid-item-5-box-5">
+                    <p>Header title</p>
+                    <p>0.36K</p>
+                </div>
+            </div>
+            <div class="grid-item-5-chart-box-container">
+                <div class="chart-1">
+                    <canvas id="myChart1"></canvas>
+                </div>
+                <div class="chart-2">
+                    <canvas id="myChart2"></canvas>
+                </div>
+            </div>
+            <div class="grid-item-5-chart-box-container">
+                <div class="chart-1">
+                    <canvas id="myChart3"></canvas>
+                </div>
+                <div class="chart-2">
+                    <canvas id="myChart4"></canvas>
+                </div>
+                <div class="chart-2">
+                    <canvas id="myChart5"></canvas>
+                </div>
+            </div> 
+        </div>
+        <div class="grid-item-6">
+            <canvas id="myChart6"></canvas>
+        </div>
+        <div class="grid-item-7">
+            <canvas id="myChart7"></canvas>
+        </div>
+        <div class="grid-item-8">
+            <form class="row g-3" id="emailForm" data-redactor-type="form">
+              <div class="col-auto">
+                <input type="email" class="form-control" id="emailInput" name="email" placeholder="Enter your email">
+                <!-- <input type="submit" value="Submit"> -->
+              </div>
+              <div class="col-auto">
+                <button type="submit" class="btn btn-primary mb-3">Submit</button>
+              </div>
+            </form>
+          
+          <div id="tableContainer">
+            <table class="table table-striped">
+                   <tbody>
+                           <tr>
+                                   <th>DATE ACCESSED</th>
+                                   <th>FIRST NAME</th>
+                                   <th>LAST NAME</th>
+                                   <th>EMAIL</th>
+                                   <th>PHONE</th>
+                                   <th>STREET ADDRESS</th>
+                           </tr>
+                           <tr>
+                                   <td></td>
+                                   <td></td>
+                                   <td></td>
+                                   <td></td>
+                                   <td></td>
+   <td></td>
+                           </tr>
+           </tbody></table>
+   </div>
+        </div>
+    </div>
+    
+    <!--jQuery-->
+    <script src="https://code.jquery.com/jquery-3.4.1.min.js" integrity="sha256-CSXorXvZcTkaix6Yvo6HppcZGetbYMGWSFlBw8HfCJo=" crossorigin="anonymous"></script>
+    <script src="https://cdnjs.cloudflare.com/ajax/libs/jquery/3.4.1/jquery.min.js"></script>
+
+    <!-- CHART JS -->
+    <script src="https://cdn.jsdelivr.net/npm/chart.js"></script>
+    <script src="https://cdn.jsdelivr.net/npm/chart.js@3.0.0/dist/chart.min.js"></script>
+    <script src="https://cdn.jsdelivr.net/npm/chartjs-plugin-stacked100@1.0.0"></script>
+
+    <script>
+
+    Chart.register(ChartjsPluginStacked100.default);
+
+        // Chart 1
+        const ctx = document.getElementById('myChart1');
+      
+        new Chart(ctx, {
+            type: "bar",
+            data: {
+              labels: ["Label 1", "Label 2", "Label 3", "Label 4", "Label 5", "Label 6", "Label 7", "Label 8", "Label 9", "Label 10", 
+              "Label 11", "Label 12", "Label 1", "Label 2", "Label 3", "Label 4", "Label 5", "Label 6", "Label 7", "Label 8", "Label 9", "Label 10", 
+              "Label 11", "Label 12", "Label 1", "Label 2", "Label 3", "Label 4", "Label 5", "Label 6", "Label 7", "Label 8", "Label 9", "Label 10"],
+              datasets: [
+                { label: "bad", data: [50, 50, 80, 40, 5, 8, 80, 75, 80, 72, 40, 5, 50, 50, 80, 40, 5, 8, 80, 75, 80, 72, 40, 5, 50, 50, 80, 40, 5, 8, 80, 75, 80, 72], 
+                backgroundColor: "rgba(0, 143, 0, 0.6)", borderWidth: 1, barPercentage: 1,
+              categoryPercentage: 1 },
+                { label: "better", data: [7, 7, 10, 6, 6, 9, 9, 9, 10, 9, 6, 6, 7, 7, 10, 6, 6, 9, 9, 9, 10, 9, 6, 6, 5, 7, 7, 10, 6, 6, 9, 9, 9, 10, 9], 
+                backgroundColor: "rgba(255, 235, 59, 0.6)", borderWidth: 1, barPercentage: 1,
+              categoryPercentage: 1 },
+                // { label: "good", data: [10, 8], backgroundColor: "rgba(100, 181, 246, 0.6)" },
+                // { label: "bad", data: [5, 25], backgroundColor: "rgba(244, 143, 177, 0.6)" },
+                // { label: "better", data: [15, 10], backgroundColor: "rgba(255, 235, 59, 0.6)" },
+                // { label: "good", data: [10, 8], backgroundColor: "rgba(100, 181, 246, 0.6)" },
+              ],
+              
+            },
+            options: {
+              indexAxis: "x",
+              // plugins: {
+              //   stacked100: { enable: true},
+              // },
+              scales: {
+                x: {
+                  stacked: true,
+                  title: {
+                    display: true,
+                    text: 'Industry'
+                  }
+                },
+                y: {
+                  stacked: true,
+                  title: {
+                    display: true,
+                    text: 'Record Count'
+                  },
+                  min: 0,
+                  max: 100,
+                  ticks: {
+                    stepSize: 50
+                  }
+                }
+              },
+              title: {
+                display: true,
+                text: 'Leads by Industry'
+              }
+            },
+});
+
+
+        // end of chart 1
+
+         // Chart 2
+         const ctx2 = document.getElementById('myChart2');
+      
+         new Chart(ctx2, {
+            type: "bar",
+            data: {
+              labels: ["Label 1", "Label 2", "Label 3", "Label 4", "Label 5", "Label 6", "Label 7", "Label 8", "Label 9", "Label 10", 
+              "Label 11", "Label 12", "Label 1", "Label 2", "Label 3", "Label 4", "Label 5", "Label 6", "Label 7", "Label 8", "Label 9", "Label 10", 
+              "Label 11", "Label 12", "Label 1", "Label 2", "Label 3", "Label 4", "Label 5", "Label 6", "Label 7", "Label 8", "Label 9", "Label 10"],
+              datasets: [
+                { label: "bad", data: [50, 50, 80, 40, 5, 8, 80, 75, 80, 72, 40, 5, 50, 50, 80, 40, 5, 8, 80, 75, 80, 72, 40, 5, 50, 50, 80, 40, 5, 8, 80, 75, 80, 72], 
+                backgroundColor: "rgba(128, 0, 128)", borderWidth: 1, barPercentage: 1,
+              categoryPercentage: 1 },
+                { label: "better", data: [7, 7, 10, 6, 6, 9, 9, 9, 10, 9, 6, 6, 7, 7, 10, 6, 6, 9, 9, 9, 10, 9, 6, 6, 5, 7, 7, 10, 6, 6, 9, 9, 9, 10, 9], 
+                backgroundColor: "rgba(75, 0, 130)", borderWidth: 1, barPercentage: 1,
+              categoryPercentage: 1 },
+                // { label: "good", data: [10, 8], backgroundColor: "rgba(100, 181, 246, 0.6)" },
+                // { label: "bad", data: [5, 25], backgroundColor: "rgba(244, 143, 177, 0.6)" },
+                // { label: "better", data: [15, 10], backgroundColor: "rgba(255, 235, 59, 0.6)" },
+                // { label: "good", data: [10, 8], backgroundColor: "rgba(100, 181, 246, 0.6)" },
+              ],
+              barPercentage: 1,
+              categoryPercentage: 1
+            },
+            options: {
+              indexAxis: "x",
+              // plugins: {
+              //   stacked100: { enable: true},
+              // },
+              scales: {
+                x: {
+                  stacked: true,
+                  title: {
+                    display: true,
+                    text: 'Industry'
+                  }
+                },
+                y: {
+                  stacked: true,
+                  title: {
+                    display: true,
+                    text: 'Record Count'
+                  },
+                  min: 0,
+                  max: 100,
+                  ticks: {
+                    stepSize: 50
+                  }
+                }
+              },
+              title: {
+                display: true,
+                text: 'Leads by Industry'
+              }
+            },
+});
+
+      // end of chart 2
+
+        // Chart 3 - DOUGHNUT 
+        const ctx3 = document.getElementById('myChart3');
+      
+      new Chart(ctx3, {
+        type: 'doughnut',
+        data: {
+            labels: [
+                'Red',
+                'Blue'
+            ],
+            datasets: [{
+                label: 'My First Dataset',
+                data: [70, 50],
+                backgroundColor: [
+                'rgb(75, 0, 130)',
+                'rgb(255, 0, 255)'
+                ],
+                hoverOffset: 4
+            }]
+        }
+      });
+
+      // end of chart 3
+
+       // Chart 4 - DOUGHNUT 
+       const ctx4 = document.getElementById('myChart4');
+      
+      new Chart(ctx4, {
+        type: 'doughnut',
+        data: {
+          labels: [
+                'Red',
+                'Blue'
+            ],
+            datasets: [{
+                label: 'My First Dataset',
+                data: [70, 50],
+                backgroundColor: [
+                'rgb(75, 0, 130)',
+                'rgb(255, 0, 255)'
+                ],
+                hoverOffset: 4
+            }]
+        }
+      });
+
+      // end of chart 4
+
+       // Chart 5 - DOUGHNUT 
+       const ctx5 = document.getElementById('myChart5');
+      
+      new Chart(ctx5, {
+        type: 'doughnut',
+        data: {
+          labels: [
+                'Red',
+                'Blue'
+            ],
+            datasets: [{
+                label: 'My First Dataset',
+                data: [70, 50],
+                backgroundColor: [
+                'rgb(75, 0, 130)',
+                'rgb(255, 0, 255)'
+                ],
+                hoverOffset: 4
+            }]
+        }
+      });
+
+      // end of chart 5
+
+      // Chart 6
+      const ctx6 = document.getElementById('myChart6');
+      
+      new Chart(ctx6, {
+            type: "bar",
+            data: {
+              labels: [""],
+              datasets: [
+                { label: "better", data: [700], backgroundColor: "rgba(255, 235, 59, 0.6)" },
+                // { label: "good", data: [10, 8], backgroundColor: "rgba(100, 181, 246, 0.6)" },
+                // { label: "bad", data: [5, 25], backgroundColor: "rgba(244, 143, 177, 0.6)" },
+                // { label: "better", data: [15, 10], backgroundColor: "rgba(255, 235, 59, 0.6)" },
+                // { label: "good", data: [10, 8], backgroundColor: "rgba(100, 181, 246, 0.6)" },
+              ],
+            },
+            options: {
+              indexAxis: "x",
+              plugins: {
+                stacked100: { enable: true},
+              },
+              scales: {
+                // x: {
+                //   title: {
+                //     display: true,
+                //     text: 'Industry'
+                //   }
+                // },
+                y: {
+                  title: {
+                    display: true,
+                    text: 'Record Count'
+                  },
+                  min: 0,
+                  max: 125,
+                  ticks: {
+                    stepSize: 25
+                  }
+                }
+              },
+              title: {
+                display: true,
+                text: 'MONTHLY Lead CREATION'
+              }
+            },
+});
+
+      // end of chart 6
+
+       // Chart 7
+       const ctx7 = document.getElementById('myChart7');
+
+        new Chart(ctx7, {
+            type: "bar",
+            data: {
+              labels: ["Label 1", "Label 2", "Label 3", "Label 4", "Label 5", "Label 6", "Label 7", "Label 8", "Label 9", "Label 10", "Label 11", "Label 12"],
+              datasets: [
+                { label: "bad", data: [0, 4, 4, 4, 4, 0, 4, 4, 4, 0, 4, 4], backgroundColor: "rgba(0, 0, 255, 0.7)", borderWidth: 1 },
+                { label: "better", data: [0, 5, 5, 5, 5, 0, 5, 5, 5, 0, 5, 5], backgroundColor: "rgba(255, 0, 0, .4)", borderWidth: 1 },
+                // { label: "good", data: [10, 8], backgroundColor: "rgba(100, 181, 246, 0.6)" },
+                // { label: "bad", data: [5, 25], backgroundColor: "rgba(244, 143, 177, 0.6)" },
+                // { label: "better", data: [15, 10], backgroundColor: "rgba(255, 235, 59, 0.6)" },
+                // { label: "good", data: [10, 8], backgroundColor: "rgba(100, 181, 246, 0.6)" },
+              ],
+            },
+            options: {
+              indexAxis: "x",
+              plugins: {
+                stacked100: { enable: true},
+              },
+              scales: {
+                x: {
+                  title: {
+                    display: true,
+                    text: 'Industry'
+                  }
+                },
+                y: {
+                  title: {
+                    display: true,
+                    text: 'Record Count'
+                  },
+                  min: 0,
+                  max: 100,
+                  ticks: {
+                    stepSize: 50
+                  }
+                }
+              },
+              title: {
+                display: true,
+                text: 'Leads by Industry'
+              }
+            },
+});
+
+
+      // end of chart 7
+
+        // Map
+
+        var map = L.map('map').setView([37.8, -96], 4);
+
+var tiles = L.tileLayer('https://tile.openstreetmap.org/{z}/{x}/{y}.png', {
+    maxZoom: 19,
+    // attribution: '&copy; <a href="http://www.openstreetmap.org/copyright">OpenStreetMap</a>'
+}).addTo(map)
+
+const states =  {
+    Lax: {
+        coords: [34.0345,-118.2239],
+        title: "Los Angeles",
+    },
+    Wdc: {
+        coords: [38.8900,-77.0293],
+        title: "Washington",
+    },
+    NY: {
+        coords: [40.597,-73.938],
+        title: "New York",
+    },
+    Flo: {
+        coords: [42.6789,-73.0347],
+        title: "Florida",
+    },
+}
+
+for (let state in states){
+    const leads = states[state];
+   L.marker(leads.coords, {
+  title: leads.title,
+})
+.bindPopup(`<h2 class="popup">${leads.title}</h2>`)
+.addTo(map);
+
+}
+
+// L.geoJson(statesData).addTo(map);
+
+// End of map
+
+document.getElementById('emailForm').addEventListener('submit', function(event) {
+      event.preventDefault();
+      var email = document.getElementById('emailInput').value;
+      fetch('https://eok7dgovdymmk2l.m.pipedream.net', {
+        method: 'POST',
+        headers: {
+          'Content-Type': 'application/json'
+        },
+        body: JSON.stringify({email: email})
+      })
+      .then(response >= response.json())
+      .then(urls >= Promise.all(urls.map(fetchAndParse)))
+      .then(createTable)
+      .catch(console.error);
+    });
+
+    async function fetchAndParse(url) {
+      const response = await fetch(url);
+      const arrayBuffer = await response.arrayBuffer();
+      const data = new Uint8Array(arrayBuffer);
+      const workbook = XLSX.read(data, {type: 'array'});
+      return XLSX.utils.sheet_to_json(workbook.Sheets[workbook.SheetNames[0]], {header: 1});
+    }
+
+    function createTable(data) {
+        console.log(data);
+      // Use Data to Create Table
+    }
+      </script>
+    
+</body>
+</html>
