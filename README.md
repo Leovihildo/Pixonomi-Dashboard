@@ -11,3 +11,5 @@ The project remains incomplete as Pixonomi opted not to continue with the GHL pl
 - Frontend: HTML/CSS, Javascript, Bootstrap, jQuery
 - Backend: GHL’s built-in automation and API integrations
 - Others: Chart.js, LeafletJS
+
+https://leovihildo.github.io/Pixonomi-Dashboard/
